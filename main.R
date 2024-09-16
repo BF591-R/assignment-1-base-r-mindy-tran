@@ -3,7 +3,8 @@
 #' Evaluate whether the argument is less than 2
 #'
 #' Returns TRUE if the numeric argument x is a prime number, otherwise returns
-#' FALSE
+#' FALSE ## Note from Mindy, I think the description is unedited, why are we taking in only prime numbers as arguments? 
+#'      ## I thought the only return should be considering whether the numeric argument is less than 2.
 #'
 #' @param x (numeric): the numeric value(s) to test
 #'
@@ -17,8 +18,9 @@
 #' [1] FALSE
 #' less_than_zero(c(-1,0,1,2,3,4))
 #' [1] TRUE FALSE FALSE FALSE FALSE FALSE
-less_than_zero <- function(x) {
-    return(NULL)
+less_than_zero <- function(x) { #FIXME 
+  result <- x<2 # use logical < to return boolean
+  return(result)
 }
 
 #' Evaluate whether the argument is between two numbers
@@ -44,7 +46,8 @@ less_than_zero <- function(x) {
 #' [2,]  TRUE FALSE FALSE
 #' [3,] FALSE FALSE FALSE
 is_between <- function(x, a, b) {
-    return(NULL)
+  result <- (a < x) & (x < b) # ampersand & is the logical AND
+  return(result)
 }
 
 #' Return the values of the input vector that are not NA
@@ -61,7 +64,10 @@ is_between <- function(x, a, b) {
 #' rm_na(x)
 #' [1] 1 2 3
 rm_na <- function(x) {
-    return(NULL)
+  result <- x[!is.na(x)] 
+  # this only keeps values that are not NA. 
+  # is.na() returns a bool evaluating if the value in the vector is NA, and if it is, we do not include it in our subset of the original vector
+  return(result)
 }
 
 #' Calculate the median of each row of a matrix
@@ -79,8 +85,11 @@ rm_na <- function(x) {
 #' row_medians(m)
 #' [1] 1 4 7
 #' 
-row_medians <- function(x) {
-    return(NULL)
+row_medians <- function(x) { # FIXME
+  result <- apply(x, 1, median, na.rm=TRUE)
+  # use apply() to apply the median() function to the rows
+  # the '1' argument indicates we want to apply the function to the rows
+  return(result)
 }
 
 #' Evaluate each row of a matrix with a provided function
@@ -105,7 +114,8 @@ row_medians <- function(x) {
 #' summarize_rows(m, mean)
 #' [1] 2 5 8
 summarize_rows <- function(x, fn, na.rm=FALSE) {
-    return(NULL)
+  result <- apply(x, 1, fn, na.rm=TRUE)
+  return(result)
 }
 
 #' Summarize matrix rows into data frame
@@ -144,9 +154,51 @@ summarize_rows <- function(x, fn, na.rm=FALSE) {
 #' 2 -0.01574033 1.026951 -0.04725656 -2.967057 2.571608      112              70      0
 #' 3 -0.09040182 1.027559 -0.02774705 -3.026888 2.353087      130              54      0
 #' 4  0.09518138 1.030461  0.11294781 -3.409049 2.544992       90              72      0
-summarize_matrix <- function(x, na.rm=FALSE) {
-    return(NULL)
+
+# define a function that we can use in apply for the num_lt_0 column
+num_lt_0_func <- function(x){ # the number of values less than 0
+  # x is the matrix
+  result <- as.numeric(x < 0) # check which values in the matrix are less than 0
+  result[is.na(result)] <- 0 # NA's are turned to 0
+  result <- sum(result)
+  return(result)
 }
+
+# define a function that we can use in apply for the num_btw_1_and_5 column
+num_btw_1_and_5_func <- function(x){ # the number of values between 1 and 5
+  # x is the matrix
+  result <- as.numeric((1 <= x) & (x < 5)) # check which values in the matrix are between 1 and 5, INCLUDING 1
+  # as.numeric turns bool to 0 or 1
+  result[is.na(result)] <- 0 # NA's are changed to 0
+  result <- sum(result) # add the 1's in the rows together
+  return(result)
+}
+
+# define a function that we can use in apply for the no_na column
+num_na_func <- function(x){ # the number of values is NA
+  # x is the matrix
+  result <- is.na(x) # check which values in the matrix are NA
+  # as.numeric turns bool to 0 or 1
+  result <- sum(result) # add the 1's in the rows together
+  return(result)
+}
+
+summarize_matrix <- function(x, na.rm=FALSE) {
+  df <- data.frame(
+    mean=apply(x, 1, mean, na.rm=TRUE),
+    stdev=apply(x, 1, sd, na.rm=TRUE),
+    median=apply(x, 1, median, na.rm=TRUE),
+    min=apply(x, 1, min, na.rm=TRUE),
+    max=apply(x, 1, max, na.rm=TRUE),
+    num_lt_0=apply(x, 1, num_lt_0_func),
+    num_btw_1_and_5=apply(x, 1, num_btw_1_and_5_func),
+    num_na=apply(x, 1, num_na_func)
+  )
+  return(df)
+}
+
+m <- matrix(1:9, nrow=3, byrow=T)
+summarize_matrix(m)
 
 # ------------ Helper Functions Used By Assignment, You May Ignore ------------
 sample_normal <- function(n, mean=0, sd=1) {
