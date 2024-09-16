@@ -1,8 +1,8 @@
 # ----------------------- Helper Functions to Implement ------------------------
 
-#' Evaluate whether the argument is less than 2
+#' Evaluate whether the argument is less than 0 zero
 #'
-#' Returns TRUE if the numeric argument x is a prime number, otherwise returns
+#' Returns TRUE if the numeric argument less than zero, otherwise returns
 #' FALSE ## Note from Mindy, I think the description is unedited, why are we taking in only prime numbers as arguments? 
 #'      ## I thought the only return should be considering whether the numeric argument is less than 2.
 #'
