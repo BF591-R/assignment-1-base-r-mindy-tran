@@ -19,7 +19,11 @@
 #' less_than_zero(c(-1,0,1,2,3,4))
 #' [1] TRUE FALSE FALSE FALSE FALSE FALSE
 less_than_zero <- function(x) { #FIXME 
-  result <- x<2 # use logical < to return boolean
+  if (typeof(x)=="double") {
+    result <- x<0 # use logical < to return boolean
+  } else {
+    result <- FALSE
+  }
   return(result)
 }
 
