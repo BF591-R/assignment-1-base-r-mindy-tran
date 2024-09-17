@@ -19,11 +19,7 @@
 #' less_than_zero(c(-1,0,1,2,3,4))
 #' [1] TRUE FALSE FALSE FALSE FALSE FALSE
 less_than_zero <- function(x) { #FIXME 
-  if (typeof(x)=="double") {
-    result <- x<0 # use logical < to return boolean
-  } else {
-    result <- FALSE
-  }
+  result <- x<0 # use logical < to return boolean
   return(result)
 }
 
@@ -89,7 +85,7 @@ rm_na <- function(x) {
 #' row_medians(m)
 #' [1] 1 4 7
 #' 
-row_medians <- function(x) { # FIXME
+row_medians <- function(x) {
   result <- apply(x, 1, median, na.rm=TRUE)
   # use apply() to apply the median() function to the rows
   # the '1' argument indicates we want to apply the function to the rows
@@ -118,7 +114,7 @@ row_medians <- function(x) { # FIXME
 #' summarize_rows(m, mean)
 #' [1] 2 5 8
 summarize_rows <- function(x, fn, na.rm=FALSE) {
-  result <- apply(x, 1, fn, na.rm=TRUE)
+  result <- apply(x, 1, fn, na.rm=na.rm)
   return(result)
 }
 
@@ -160,49 +156,57 @@ summarize_rows <- function(x, fn, na.rm=FALSE) {
 #' 4  0.09518138 1.030461  0.11294781 -3.409049 2.544992       90              72      0
 
 # define a function that we can use in apply for the num_lt_0 column
-num_lt_0_func <- function(x){ # the number of values less than 0
+num_lt_0_func <- function(x, na.rm=FALSE){ # the number of values less than 0
   # x is the matrix
   result <- as.numeric(x < 0) # check which values in the matrix are less than 0
-  result[is.na(result)] <- 0 # NA's are turned to 0
-  result <- sum(result)
+  if (na.rm==TRUE){
+    result[is.na(result)] <- 0 # NA's are turned to 0
+  }
+  result <- sum(result) # add the 1's in the rows together
   return(result)
 }
 
 # define a function that we can use in apply for the num_btw_1_and_5 column
-num_btw_1_and_5_func <- function(x){ # the number of values between 1 and 5
+num_btw_1_and_5_func <- function(x, na.rm=FALSE){ # the number of values between 1 and 5
   # x is the matrix
-  result <- as.numeric((1 <= x) & (x < 5)) # check which values in the matrix are between 1 and 5, INCLUDING 1
+  result <- as.numeric((1 < x) & (x < 5)) # check which values in the matrix are between 1 and 5, INCLUDING 1
   # as.numeric turns bool to 0 or 1
-  result[is.na(result)] <- 0 # NA's are changed to 0
+  if (na.rm==TRUE){ 
+    result[is.na(result)] <- 0 # NA's are turned to 0 if we want to remove them
+  }
   result <- sum(result) # add the 1's in the rows together
   return(result)
 }
 
 # define a function that we can use in apply for the no_na column
-num_na_func <- function(x){ # the number of values is NA
-  # x is the matrix
-  result <- is.na(x) # check which values in the matrix are NA
-  # as.numeric turns bool to 0 or 1
-  result <- sum(result) # add the 1's in the rows together
+num_na_func <- function(x, na.rm=FALSE){
+  if (na.rm==TRUE){
+    result <- 0
+  } else {
+    result <- is.na(x) # check which values in the matrix are NA
+    # as.numeric turns bool to 0 or 1
+    result <- sum(result) # add the 1's in the rows together
+  }
   return(result)
 }
 
 summarize_matrix <- function(x, na.rm=FALSE) {
   df <- data.frame(
-    mean=apply(x, 1, mean, na.rm=TRUE),
-    stdev=apply(x, 1, sd, na.rm=TRUE),
-    median=apply(x, 1, median, na.rm=TRUE),
-    min=apply(x, 1, min, na.rm=TRUE),
-    max=apply(x, 1, max, na.rm=TRUE),
-    num_lt_0=apply(x, 1, num_lt_0_func),
-    num_btw_1_and_5=apply(x, 1, num_btw_1_and_5_func),
-    num_na=apply(x, 1, num_na_func)
+    mean=apply(x, 1, mean, na.rm=na.rm),
+    stdev=apply(x, 1, sd, na.rm=na.rm),
+    median=apply(x, 1, median, na.rm=na.rm),
+    min=apply(x, 1, min, na.rm=na.rm),
+    max=apply(x, 1, max, na.rm=na.rm),
+    num_lt_0=apply(x, 1, num_lt_0_func, na.rm=na.rm),
+    num_btw_1_and_5=apply(x, 1, num_btw_1_and_5_func, na.rm=na.rm),
+    num_na=apply(x, 1, num_na_func, na.rm=na.rm)
   )
   return(df)
 }
 
 m <- matrix(1:9, nrow=3, byrow=T)
-summarize_matrix(m)
+m[2,1] <- NA
+m_summary <- summarize_matrix(m, na.rm=TRUE)
 
 # ------------ Helper Functions Used By Assignment, You May Ignore ------------
 sample_normal <- function(n, mean=0, sd=1) {
